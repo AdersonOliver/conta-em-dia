@@ -5,7 +5,7 @@ from bson.objectid import ObjectId
 from datetime import datetime
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
-app.secret_key = os.getenv("SECRET_KEY", "chave_segura_fluxo_2026")
+app.secret_key = os.getenv("SECRET_KEY", "fluxo_caixa_total_2026")
 
 # CONEXÃO BANCO
 URL_RESERVA = "mongodb+srv://adersonsoliveira55_db_user:MqSM10DQ5YNhyOpB@contasemdia.9iqz23o.mongodb.net/?appName=ContasEmDia"
@@ -56,12 +56,11 @@ def index():
         query = {"vencimento": {"$gte": inicio_mes, "$lt": fim_mes}}
         movimentacoes = list(movimentacoes_col.find(query).sort("vencimento", 1))
 
-        # SOMA SEGURA (Ignora valores nulos ou tipos errados)
         total_entradas = 0
         total_saidas = 0
         for item in movimentacoes:
             v = item.get('valor', 0)
-            if not isinstance(v, (int, float)): v = 0  # Segurança extra
+            if not isinstance(v, (int, float)): v = 0
 
             if item.get('tipo') == 'entrada':
                 total_entradas += v
@@ -69,7 +68,6 @@ def index():
                 total_saidas += v
 
         saldo = total_entradas - total_saidas
-
         meses_nome = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
                       "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
 
@@ -82,7 +80,7 @@ def index():
                                ano_atual=ano_sel,
                                meses_nome=meses_nome)
     except Exception as e:
-        return f"Erro no servidor: {str(e)}"  # Mostra o erro na tela para facilitar
+        return f"Erro de processamento: {str(e)}"
 
 
 @app.route('/add', methods=['POST'])

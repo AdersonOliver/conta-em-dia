@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fluxo de Caixa Mensal</title>
+    <title>Fluxo de Caixa - Conta em Dia</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -15,12 +15,12 @@
 
         <div class="filter-bar">
             <form action="/" method="GET" id="filterForm">
-                <select name="mes" onchange="document.getElementById('filterForm').submit()">
+                <select name="mes" onchange="this.form.submit()">
                     {% for i in range(1, 13) %}
                         <option value="{{ i }}" {{ 'selected' if i == mes_atual }}>{{ meses_nome[i-1] }}</option>
                     {% endfor %}
                 </select>
-                <select name="ano" onchange="document.getElementById('filterForm').submit()">
+                <select name="ano" onchange="this.form.submit()">
                     {% for a in range(2025, 2028) %}
                         <option value="{{ a }}" {{ 'selected' if a == ano_atual }}>{{ a }}</option>
                     {% endfor %}
@@ -31,16 +31,16 @@
 
         <div class="dashboard">
             <div class="card entrada">
-                <span>Entradas ({{ meses_nome[mes_atual-1][:3] }})</span>
-                <strong>R$ {{ "%.2f"|format(total_entradas).replace('.', ',') }}</strong>
+                <span>Entradas</span>
+                <strong>R$ {{ ("%.2f"|format(total_entradas)).replace('.', ',') }}</strong>
             </div>
             <div class="card saida">
-                <span>Saídas ({{ meses_nome[mes_atual-1][:3] }})</span>
-                <strong>R$ {{ "%.2f"|format(total_saidas).replace('.', ',') }}</strong>
+                <span>Saídas</span>
+                <strong>R$ {{ ("%.2f"|format(total_saidas)).replace('.', ',') }}</strong>
             </div>
             <div class="card saldo" style="background-color: {{ '#2ecc71' if saldo >= 0 else '#e74c3c' }}">
                 <span>Saldo Atual</span>
-                <strong>R$ {{ "%.2f"|format(saldo).replace('.', ',') }}</strong>
+                <strong>R$ {{ ("%.2f"|format(saldo)).replace('.', ',') }}</strong>
             </div>
         </div>
 
@@ -72,18 +72,18 @@
                     <tr class="{{ item.tipo }} {{ 'pago' if item.pago }}">
                         <td>{{ item.vencimento.strftime('%d/%m') }}</td>
                         <td>{{ item.descricao }}</td>
-                        <td>R$ {{ "%.2f"|format(item.valor).replace('.', ',') }}</td>
+                        <td>R$ {{ ("%.2f"|format(item.valor)).replace('.', ',') }}</td>
                         <td class="actions">
                             {% if not item.pago and item.tipo == 'saida' %}
-                                <a href="/pagar/{{ item._id }}" class="btn-pago">✔️</a>
+                                <a href="/pagar/{{ item._id }}" title="Marcar como Pago">✔️</a>
                             {% endif %}
-                            <a href="/deletar/{{ item._id }}" class="btn-del">🗑️</a>
+                            <a href="/deletar/{{ item._id }}" title="Excluir">🗑️</a>
                         </td>
                     </tr>
                     {% endfor %}
                     {% if not movimentacoes %}
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 40px; color: #95a5a6;">Nenhum lançamento neste mês.</td>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: #95a5a6;">Vazio para este mês.</td>
                     </tr>
                     {% endif %}
                 </tbody>
