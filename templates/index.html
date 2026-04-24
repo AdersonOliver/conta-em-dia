@@ -47,6 +47,17 @@
             {% endfor %}
         </section>
 
+        <select name="tipo" required>
+            <option value="saida">Saída (Conta a Pagar)</option>
+            <option value="entrada">Entrada (Dinheiro Recebido)</option>
+        </select>
+
+        <div class="resumo-caixa">
+            <div class="card">Entradas: R$ {{ "%.2f"|format(total_entradas) }}</div>
+            <div class="card">Saídas: R$ {{ "%.2f"|format(total_saidas) }}</div>
+            <div class="card" style="font-weight: bold;">Saldo: R$ {{ "%.2f"|format(saldo) }}</div>
+        </div>
+
         <footer class="totalizer">
             <h2>Total a Pagar: R$ {{ "%.2f"|format(total_pendente.value) }}</h2>
         </footer>
