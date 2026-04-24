@@ -3,64 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conta em Dia</title>
+    <title>Fluxo de Caixa - Conta em Dia</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Conta em Dia</h1>
-            <p>Sua organização financeira simplificada</p>
-            <a href="/logout" style="color: #e74c3c; text-decoration: none; font-size: 0.8em;">Sair do Sistema</a>
+            <h1>📊 Fluxo de Caixa</h1>
+            <a href="/logout" class="btn-logout">Sair</a>
         </header>
+
+        <div class="dashboard">
+            <div class="card entrada">
+                <span>Entradas</span>
+                <strong>R$ {{ "%.2f"|format(total_entradas) }}</strong>
+            </div>
+            <div class="card saida">
+                <span>Saídas</span>
+                <strong>R$ {{ "%.2f"|format(total_saidas) }}</strong>
+            </div>
+            <div class="card saldo">
+                <span>Saldo</span>
+                <strong>R$ {{ "%.2f"|format(saldo) }}</strong>
+            </div>
+        </div>
 
         <section class="form-section">
             <form action="/add" method="POST">
-                <input type="text" name="descricao" placeholder="Ex: Conta de Luz" required>
-                <input type="number" step="0.01" name="valor" placeholder="R$ 0,00" required>
+                <input type="text" name="descricao" placeholder="Descrição (ex: Venda Móvel)" required>
+                <input type="number" step="0.01" name="valor" placeholder="Valor R$" required>
+                <select name="tipo" required>
+                    <option value="saida">🔴 Saída (Pagamento)</option>
+                    <option value="entrada">🟢 Entrada (Recebimento)</option>
+                </select>
                 <input type="date" name="vencimento" required>
-                <button type="submit">Cadastrar</button>
+                <button type="submit" class="btn-add">Lançar no Fluxo</button>
             </form>
         </section>
 
-        <section class="list-section">
-            {% set total_pendente = namespace(value=0) %}
-            {% for conta in contas %}
-                <div class="card {{ 'paga' if conta.pago else 'pendente' }}">
-                    <div class="info">
-                        <h3>{{ conta.descricao }}</h3>
-                        <span>Vencimento: {{ conta.vencimento.strftime('%d/%m/%Y') }}</span>
-                    </div>
-                    <div class="status">
-                        <span class="valor">R$ {{ "%.2f"|format(conta.valor) }}</span>
-                        <div class="actions">
-                            {% if not conta.pago %}
-                                <a href="/pagar/{{ conta._id }}" class="btn-pagar">Pagar</a>
-                                {% set total_pendente.value = total_pendente.value + conta.valor %}
-                            {% else %}
-                                <span class="badge-pago">✅ Pago</span>
-                            {% endif %}
-                            <a href="/deletar/{{ conta._id }}" class="btn-delete">🗑️</a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </section>
-
-        <select name="tipo" required>
-            <option value="saida">Saída (Conta a Pagar)</option>
-            <option value="entrada">Entrada (Dinheiro Recebido)</option>
-        </select>
-
-        <div class="resumo-caixa">
-            <div class="card">Entradas: R$ {{ "%.2f"|format(total_entradas) }}</div>
-            <div class="card">Saídas: R$ {{ "%.2f"|format(total_saidas) }}</div>
-            <div class="card" style="font-weight: bold;">Saldo: R$ {{ "%.2f"|format(saldo) }}</div>
-        </div>
-
-        <footer class="totalizer">
-            <h2>Total a Pagar: R$ {{ "%.2f"|format(total_pendente.value) }}</h2>
-        </footer>
+        <table class="fluxo-table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Descrição</th>
+                    <th>Valor</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in movimentacoes %}
+                <tr class="{{ item.tipo }} {{ 'pago' if item.pago }}">
+                    <td>{{ item.vencimento.strftime('%d/%m') }}</td>
+                    <td>{{ item.descricao }}</td>
+                    <td>R$ {{ "%.2f"|format(item.valor) }}</td>
+                    <td>
+                        {% if not item.pago %}
+                            <a href="/pagar/{{ item._id }}" class="btn-pago">✔️</a>
+                        {% endif %}
+                        <a href="/deletar/{{ item._id }}" class="btn-del">🗑️</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </body>
 </html>

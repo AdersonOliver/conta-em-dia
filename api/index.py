@@ -5,14 +5,14 @@ from bson.objectid import ObjectId
 from datetime import datetime
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
-app.secret_key = os.getenv("SECRET_KEY", "chave_mestra_123")
+app.secret_key = os.getenv("SECRET_KEY", "fluxo_caixa_2026_key")
 
+# CONEXÃO COM O BANCO
 URL_RESERVA = "mongodb+srv://adersonsoliveira55_db_user:MqSM10DQ5YNhyOpB@contasemdia.9iqz23o.mongodb.net/?appName=ContasEmDia"
 MONGO_URI = os.getenv("MONGO_URI", URL_RESERVA)
-
 client = MongoClient(MONGO_URI)
 db = client.get_database('conta_em_dia_db')
-movimentacoes_col = db.contas  # Mantive o nome da coleção para não perder seus dados
+movimentacoes_col = db.contas
 
 SENHA_SISTEMA = "1234"
 
@@ -34,19 +34,22 @@ def login():
     return render_template('login.html', erro=erro)
 
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+
 @app.route('/')
 def index():
-    # Busca todas as movimentações
     movimentacoes = list(movimentacoes_col.find().sort("vencimento", 1))
 
     total_entradas = 0
     total_saidas = 0
 
     for item in movimentacoes:
-        # Se não tiver o campo 'tipo', assumimos que é 'saida' (pelas contas antigas)
-        tipo = item.get('tipo', 'saida')
         valor = item.get('valor', 0)
-
+        tipo = item.get('tipo', 'saida')
         if tipo == 'entrada':
             total_entradas += valor
         else:
@@ -66,16 +69,26 @@ def add():
     descricao = request.form.get('descricao')
     valor = float(request.form.get('valor').replace(',', '.'))
     vencimento_str = request.form.get('vencimento')
-    tipo = request.form.get('tipo')  # Novo campo: entrada ou saida
+    tipo = request.form.get('tipo')
 
-    nova_movimentacao = {
+    nova_mov = {
         "descricao": descricao,
         "valor": valor,
         "vencimento": datetime.strptime(vencimento_str, '%Y-%m-%d'),
         "tipo": tipo,
         "pago": False
     }
-    movimentacoes_col.insert_one(nova_movimentacao)
+    movimentacoes_col.insert_one(nova_mov)
     return redirect(url_for('index'))
 
-# ... (Mantenha as rotas /pagar e /deletar como estão)
+
+@app.route('/pagar/<id>')
+def pagar(id):
+    movimentacoes_col.update_one({"_id": ObjectId(id)}, {"$set": {"pago": True}})
+    return redirect(url_for('index'))
+
+
+@app.route('/deletar/<id>')
+def deletar(id):
+    movimentacoes_col.delete_one({"_id": ObjectId(id)})
+    return redirect(url_for('index'))
