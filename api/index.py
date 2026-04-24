@@ -6,52 +6,51 @@ from datetime import datetime
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
-# CHAVE DE SEGURANÇA: Necessária para usar 'session'.
-# No Vercel, você pode adicionar uma variável chamada SECRET_KEY.
-app.secret_key = os.getenv("SECRET_KEY", "chave-secreta-muito-dificil-123")
+# SEGURANÇA: Chave para as sessões de login
+app.secret_key = os.getenv("SECRET_KEY", "chave_mestra_123")
 
-# CONEXÃO MONGODB: Lendo da variável de ambiente que configuramos na Vercel
-MONGO_URI = os.getenv("MONGO_URI")
+# BANCO DE DADOS: Prioriza a variável da Vercel, mas tem a sua URL como reserva
+URL_RESERVA = "mongodb+srv://adersonsoliveira55_db_user:MqSM10DQ5YNhyOpB@contasemdia.9iqz23o.mongodb.net/?appName=ContasEmDia"
+MONGO_URI = os.getenv("MONGO_URI", URL_RESERVA)
+
 client = MongoClient(MONGO_URI)
 db = client.get_database('conta_em_dia_db')
 contas_col = db.contas
 
-# SENHA DE ACESSO: A senha que você e sua esposa vão digitar (pode mudar aqui)
+# SENHA DO SITE (Mude aqui se quiser)
 SENHA_SISTEMA = "1234"
 
 
-# --- PROTEÇÃO DE ACESSO ---
+# --- PROTEÇÃO ---
 @app.before_request
 def verificar_acesso():
-    # Rotas que NÃO precisam de login: a página de login e os arquivos CSS/Imagens
     rotas_abertas = ['login', 'static']
-
     if 'logado' not in session and request.endpoint not in rotas_abertas:
-        return render_template('login.html')
+        return redirect(url_for('login'))
 
 
-# --- ROTAS DE AUTENTICAÇÃO ---
+# --- ROTAS DE ACESSO ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    erro = None
     if request.method == 'POST':
-        senha_digitada = request.form.get('senha')
-        if senha_digitada == SENHA_SISTEMA:
+        if request.form.get('senha') == SENHA_SISTEMA:
             session['logado'] = True
             return redirect(url_for('index'))
-        else:
-            return render_template('login.html', erro="Senha incorreta!")
-    return render_template('login.html')
+        erro = "Senha incorreta!"
+    return render_template('login.html', erro=erro)
 
 
 @app.route('/logout')
 def logout():
-    session.pop('logado', None)
+    session.clear()
     return redirect(url_for('login'))
 
 
-# --- ROTAS DO SISTEMA ---
+# --- ROTAS FINANCEIRAS ---
 @app.route('/')
 def index():
+    # Busca todas as contas e ordena pela data de vencimento
     contas = list(contas_col.find().sort("vencimento", 1))
     return render_template('index.html', contas=contas)
 
@@ -59,7 +58,7 @@ def index():
 @app.route('/add', methods=['POST'])
 def add():
     descricao = request.form.get('descricao')
-    valor = float(request.form.get('valor'))
+    valor = float(request.form.get('valor').replace(',', '.'))
     vencimento_str = request.form.get('vencimento')
 
     nova_conta = {
