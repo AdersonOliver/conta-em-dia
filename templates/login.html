@@ -16,10 +16,11 @@
         {% endif %}
 
         <form action="/login" method="POST">
-            <input type="password" name="senha" placeholder="Sua senha" required
-                   style="width: 100%; padding: 12px; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem;">
-            <button type="submit" style="width: 100%; background: #27ae60; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">Entrar</button>
-        </form>
+    <input type="email" name="email" placeholder="E-mail" required style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+    <input type="password" name="senha" placeholder="Senha" required style="width: 100%; padding: 12px; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+    <button type="submit" style="width: 100%; background: #27ae60; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">Entrar</button>
+</form>
+<p style="text-align: center; margin-top: 15px;"><a href="/registrar" style="color: #7f8c8d; text-decoration: none; font-size: 0.9rem;">Criar uma conta nova</a></p>
     </div>
 </body>
 </html>
